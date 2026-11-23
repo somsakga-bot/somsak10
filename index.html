@@ -123,7 +123,10 @@ footer{margin:18px 12px 20px;background:#052e16;color:#4ade80;text-align:center;
       </div>
       <div class="card" style="margin-bottom:12px"><h3 style="color:var(--g)">🟢 รายรับ (กราฟวงกลม)</h3><div class="chartbox"><canvas id="cPie"></canvas></div></div>
       <div class="card" style="margin-bottom:12px"><h3 style="color:var(--r)">🔴 รายจ่ายตามหมวด (กราฟแท่ง)</h3><div class="chartbox"><canvas id="cBar"></canvas></div></div>
-      <div class="card" id="grpTable"></div>
+      <div class="card" id="grpTable" style="margin-bottom:12px"></div>
+      <h3 style="margin:4px 2px 8px">รายการล่าสุด <span class="k">(กด ✎ แก้ไข ได้ทันที)</span></h3>
+      <div id="recent"></div>
+      <button class="btn gray noprint" style="width:100%;margin-bottom:6px" onclick="show('list')">ดูรายการทั้งหมด ▶</button>
     </div>
 
     <!-- รายการ -->
@@ -165,7 +168,8 @@ footer{margin:18px 12px 20px;background:#052e16;color:#4ade80;text-align:center;
     <label>รายการ</label><select id="fS"></select>
     <label>จำนวนเงิน (บาท)</label><input id="fA" type="number" inputmode="decimal" step="0.01" placeholder="0.00">
     <label>หมายเหตุ</label><textarea id="fN" rows="2"></textarea>
-    <div class="hint">⏱ วันเวลาบันทึกโดยอัตโนมัติ <span id="fDt"></span></div>
+    <label>วันที่-เวลา</label><input id="fD" type="datetime-local">
+    <div class="hint">⏱ ค่าเริ่มต้นคือวันเวลาปัจจุบันอัตโนมัติ — ถ้าบันทึกย้อนหลัง (เช่น เดือน ต.ค.) ให้แก้วันที่ตรงนี้</div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn gray" style="flex:1" onclick="goBack()">◀ ย้อนกลับ</button>
       <button class="btn" style="flex:2" id="fSave" onclick="save()">💾 บันทึก</button>
@@ -176,13 +180,13 @@ footer{margin:18px 12px 20px;background:#052e16;color:#4ade80;text-align:center;
 
 <script>
 // ===== ตั้งค่า: ใส่ URL Web App ที่ได้จากการ Deploy Apps Script =====
-const API = 'https://script.google.com/macros/s/AKfycbxZHcpYqUxxi6Gc1FOEBWzSlVlrlmmcHEDDUNeHfZnHoANTM-Fe2Y_wXr_FCjkpi2mQ/exec';
+const API = 'PASTE_WEB_APP_URL_HERE';
 
 const INCOME = {name:'รายรับ', items:['เงินเดือน','เบี้ยเลี้ยง','เงิน โอที','บิลน้ำมัน','รายได้อื่นๆ'],
   colors:['#16a34a','#0ea5e9','#f59e0b','#8b5cf6','#ec4899']};
 const EXP = {
  'ทั่วไป':{c:'#f59e0b',i:['อาหารเครื่องดื่ม','น้ำมันรถ','ของใช้ส่วนตัว','เสื้อผ้าเครื่องแต่งกายรองเท้า','สุขภาพ ยารักษาโรค อาหารเสริม','ตัดผมเสริมหล่อ','งานอดิเรก','ค่าน้ำค่าไฟ']},
- 'หน้าที่':{c:'#3b82f6',i:['อุปกรณ์สำนักงาน','อุปกรณ์เครื่องแบบ','ห้องทำงาน','อุปกรณ์คอมพิวเตอร์','ค่าบูรณทรัพย์สิน','ค่าภาษีรายได้','ค่า สธณภ.']},
+ 'หน้าที่':{c:'#3b82f6',i:['อุปกรณ์สำนักงาน','อุปกรณ์เครื่องแบบ','ห้องทำงาน','อุปกรณ์คอมพิวเตอร์','ค่าบูรณทรัพย์สิน','ค่าภาษีรายได้']},
  'สื่อสาร':{c:'#06b6d4',i:['ค่าโทรศัพท์','ค่าอินเตอร์เน็ต','ค่าใช้แอปต่างๆ','ค่าเช่าคราวด์และserver']},
  'ทำบุญ':{c:'#a855f7',i:['ค่าฌาปณกิจ ตร.','ภาษีสังคม','ทำบุญในโอกาสต่างๆ']},
  'ยานพาหนะ':{c:'#ef4444',i:['ค่าภาษีรถยนต์','ค่าซ่อมรถ','ค่าประกันภัย','ค่า พรบ.']},
@@ -248,7 +252,9 @@ function render(){
   if(!$('app')||$('app').classList.contains('hide'))return;
   const rs=rowsIn(),inc=rs.filter(r=>r.type==='รายรับ'),exp=rs.filter(r=>r.type==='รายจ่าย');
   $('sI').textContent=fmt(sum(inc));$('sE').textContent=fmt(sum(exp));$('sB').textContent=fmt(sum(inc)-sum(exp));
-  if(view==='dash')charts(inc,exp);
+  if(view==='dash'){charts(inc,exp);
+    const rc=rs.slice().sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,5);
+    $('recent').innerHTML=rc.length?rc.map(rowHtml).join(''):'<div class="card" style="text-align:center;color:var(--mu)">ยังไม่มีรายการในช่วงนี้</div>';}
   if(view==='list')list(rs);
   if(view==='report')report(inc,exp);
 }
@@ -269,14 +275,16 @@ function dtTH(s){const [d,t]=s.split(' ');const [y,m,dd]=d.split('-');return `${
 function setF(b){filt=b.dataset.f;document.querySelectorAll('.filt button').forEach(x=>x.classList.toggle('on',x===b));render()}
 function list(rs){
   rs=rs.filter(r=>!filt||r.type===filt).sort((a,b)=>b.dt.localeCompare(a.dt));
-  $('rows').innerHTML=rs.length?rs.map(r=>{const c=colorOf(r);const inc=r.type==='รายรับ';
+  $('rows').innerHTML=rs.length?rs.map(rowHtml).join('')
+    :'<div class="card" style="text-align:center;color:var(--mu)">ยังไม่มีรายการในช่วงนี้</div>';
+}
+function rowHtml(r){const c=colorOf(r);const inc=r.type==='รายรับ';
     return `<div class="row" style="border-left-color:${c}"><div class="m">
       <div class="n">${esc(r.sub)}</div>
       <div class="s"><span class="badge" style="background:${inc?'#16a34a':c}">${inc?'รายรับ':esc(r.group)}</span>${dtTH(r.dt)}${r.upd?' (แก้ไข)':''}</div>
       ${r.note?`<div class="s">📝 ${esc(r.note)}</div>`:''}</div>
       <div class="amt" style="color:${inc?'#16a34a':'#dc2626'}">${inc?'+':'-'}${fmt(r.amount)}</div>
-      <div class="noprint"><button class="mini blue" onclick="openForm(null,'${r.id}')">✎</button> <button class="mini red" onclick="del('${r.id}')">🗑</button></div></div>`}).join('')
-    :'<div class="card" style="text-align:center;color:var(--mu)">ยังไม่มีรายการในช่วงนี้</div>';
+      <div class="noprint" style="display:flex;flex-direction:column;gap:4px"><button class="mini blue" onclick="openForm(null,'${r.id}')">✎ แก้ไข</button><button class="mini red" onclick="del('${r.id}')">🗑 ลบ</button></div></div>`;
 }
 function report(inc,exp){
   const {y,label}=period();
@@ -319,18 +327,26 @@ function openForm(type,id){
   if(r){if(type==='รายจ่าย'){$('fG').value=r.group;fillSub()}$('fS').value=r.sub;$('fA').value=r.amount;$('fN').value=r.note}
   else{$('fA').value='';$('fN').value=''}
   $('fTitle').textContent=id?'✎ แก้ไขข้อมูล':'＋ บันทึกข้อมูลใหม่';
-  $('fDt').textContent=id?'(คงเวลาเดิม: '+dtTH(r.dt)+')':'';
+  const n=new Date(),p2=v=>String(v).padStart(2,'0');
+  $('fD').value=r?r.dt.slice(0,16).replace(' ','T'):`${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}T${p2(n.getHours())}:${p2(n.getMinutes())}`;
   $('modal').classList.remove('hide');
 }
 async function save(){
   const amt=parseFloat($('fA').value);
   if(!(amt>0)){toast('กรุณาใส่จำนวนเงิน');return}
-  const row={id:editId,type:ftype,group:ftype==='รายรับ'?'รายรับ':$('fG').value,sub:$('fS').value,amount:amt,note:$('fN').value};
+  if(!$('fD').value){toast('กรุณาเลือกวันที่');return}
+  const row={id:editId,type:ftype,group:ftype==='รายรับ'?'รายรับ':$('fG').value,sub:$('fS').value,amount:amt,note:$('fN').value,dt:$('fD').value.replace('T',' ')+':00'};
   $('fSave').disabled=true;$('fSave').textContent='กำลังบันทึก...';
   try{
     const r=await api({action:editId?'update':'add',row});
     if(!r.ok)throw new Error(r.error);
-    $('modal').classList.add('hide');toast('บันทึกเรียบร้อย');await load();
+    $('modal').classList.add('hide');toast('บันทึกเรียบร้อย');
+    // สลับไปแสดงเดือนที่เพิ่งบันทึก
+    const [yy,mm]=row.dt.split(' ')[0].split('-');
+    await load();
+    if([...$('selY').options].some(o=>o.value===yy)){$('selY').value=yy;$('selM').value=+mm}
+    else{$('selY').add(new Option('พ.ศ. '+(+yy+543),yy));$('selY').value=yy;$('selM').value=+mm}
+    render();
   }catch(e){toast('ผิดพลาด: '+e.message)}
   $('fSave').disabled=false;$('fSave').textContent='💾 บันทึก';
 }
