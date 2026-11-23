@@ -49,7 +49,8 @@ main{padding:0 12px 12px}
 .row .s{font-size:12px;color:var(--mu)}
 .badge{display:inline-block;font-size:11px;color:#fff;border-radius:20px;padding:1px 8px;margin-right:4px}
 .amt{font-weight:700;white-space:nowrap}
-.mini{padding:6px 9px;border-radius:8px;font-size:13px;color:#fff}
+.mini{padding:6px 10px;border-radius:8px;font-size:14px;font-weight:700;color:#dc2626;background:#fff1f2;border:1.5px solid #dc2626}
+.mini:active{background:#dc2626;color:#fff}
 .filt{display:flex;gap:6px;margin-bottom:10px}
 .filt button{flex:1;padding:8px;border-radius:10px;background:#e2e8f0;font-weight:600}
 .filt button.on{background:#0f172a;color:#fff}
@@ -180,13 +181,13 @@ footer{margin:18px 12px 20px;background:#052e16;color:#4ade80;text-align:center;
 
 <script>
 // ===== ตั้งค่า: ใส่ URL Web App ที่ได้จากการ Deploy Apps Script =====
-const API = 'https://script.google.com/macros/s/AKfycbw12IjBEhkHRUzxHgGQmlbGKFVfYvYERYdl1biNsrSRGHvCXGO6_nAHHDbRgJq74BLt/exec';
+const API = 'PASTE_WEB_APP_URL_HERE';
 
 const INCOME = {name:'รายรับ', items:['เงินเดือน','เบี้ยเลี้ยง','เงิน โอที','บิลน้ำมัน','รายได้อื่นๆ'],
   colors:['#16a34a','#0ea5e9','#f59e0b','#8b5cf6','#ec4899']};
 const EXP = {
  'ทั่วไป':{c:'#f59e0b',i:['อาหารเครื่องดื่ม','น้ำมันรถ','ของใช้ส่วนตัว','เสื้อผ้าเครื่องแต่งกายรองเท้า','สุขภาพ ยารักษาโรค อาหารเสริม','ตัดผมเสริมหล่อ','งานอดิเรก','ค่าน้ำค่าไฟ']},
- 'หน้าที่':{c:'#3b82f6',i:['อุปกรณ์สำนักงาน','อุปกรณ์เครื่องแบบ','ห้องทำงาน','อุปกรณ์คอมพิวเตอร์','ค่าบูรณทรัพย์สิน','ค่าภาษีรายได้','ค่า สธณภ.']},
+ 'หน้าที่':{c:'#3b82f6',i:['อุปกรณ์สำนักงาน','อุปกรณ์เครื่องแบบ','ห้องทำงาน','อุปกรณ์คอมพิวเตอร์','ค่าบูรณทรัพย์สิน','ค่าภาษีรายได้']},
  'สื่อสาร':{c:'#06b6d4',i:['ค่าโทรศัพท์','ค่าอินเตอร์เน็ต','ค่าใช้แอปต่างๆ','ค่าเช่าคราวด์และserver']},
  'ทำบุญ':{c:'#a855f7',i:['ค่าฌาปณกิจ ตร.','ภาษีสังคม','ทำบุญในโอกาสต่างๆ']},
  'ยานพาหนะ':{c:'#ef4444',i:['ค่าภาษีรถยนต์','ค่าซ่อมรถ','ค่าประกันภัย','ค่า พรบ.']},
