@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>บันทึกรายรับ-รายจ่าย</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#16a34a;--dg:#052e16;--r:#dc2626;--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--mu:#64748b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--tx);max-width:480px;margin:0 auto;min-height:100vh;font-size:15px}
+.hide{display:none!important}
+button{font-family:inherit;cursor:pointer;border:0}
+/* login */
+#login{padding:40px 24px;text-align:center}
+#login img{width:110px;height:110px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid var(--g)}
+#login h2{margin:14px 0 18px;color:var(--dg)}
+input,select,textarea{width:100%;padding:11px;border:1.5px solid #cbd5e1;border-radius:10px;font-family:inherit;font-size:16px;background:#fff}
+.btn{padding:11px 16px;border-radius:10px;font-weight:700;font-size:15px;color:#fff;background:var(--g)}
+.btn.red{background:var(--r)}.btn.gray{background:#64748b}.btn.blue{background:#2563eb}
+.err{color:var(--r);margin-top:8px;min-height:20px}
+/* header */
+.banner{height:150px;background:url(header.jpg) center/cover;position:relative}
+.banner:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(5,46,22,.55))}
+.logo{width:104px;height:104px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #fff;background:#000;display:block;margin:-52px auto 0;position:relative;z-index:2;box-shadow:0 4px 12px #0004}
+.title{text-align:center;font-weight:700;font-size:20px;color:var(--dg);margin:6px 0 10px}
+.topbar{display:flex;gap:8px;padding:0 12px 8px}
+.topbar button{flex:1;padding:9px 4px;border-radius:10px;background:#e2e8f0;font-weight:600;font-size:14px}
+.topbar button.on{background:var(--g);color:#fff}
+.topbar .back{flex:0 0 auto;background:#475569;color:#fff;padding:9px 12px}
+.period{display:flex;gap:8px;padding:0 12px 10px}
+.period select{padding:9px;font-size:15px}
+main{padding:0 12px 12px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.card{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 1px 4px #0001}
+.card.full{grid-column:1/3}
+.k{font-size:13px;color:var(--mu)}.v{font-size:20px;font-weight:700}
+.inc{border-left:6px solid var(--g)}.inc .v{color:var(--g)}
+.exp{border-left:6px solid var(--r)}.exp .v{color:var(--r)}
+.bal{border-left:6px solid #2563eb}.bal .v{color:#2563eb}
+.card h3{font-size:16px;margin-bottom:8px}
+.chartbox{position:relative;height:250px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.actions .btn{padding:14px;font-size:16px}
+.row{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:10px;margin-bottom:8px;border-left:6px solid #999;box-shadow:0 1px 3px #0001}
+.row .m{flex:1;min-width:0}
+.row .n{font-weight:700}
+.row .s{font-size:12px;color:var(--mu)}
+.badge{display:inline-block;font-size:11px;color:#fff;border-radius:20px;padding:1px 8px;margin-right:4px}
+.amt{font-weight:700;white-space:nowrap}
+.mini{padding:6px 9px;border-radius:8px;font-size:13px;color:#fff}
+.filt{display:flex;gap:6px;margin-bottom:10px}
+.filt button{flex:1;padding:8px;border-radius:10px;background:#e2e8f0;font-weight:600}
+.filt button.on{background:#0f172a;color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 4px;border-bottom:1px solid #e2e8f0;text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{background:#14532d;color:#fff}
+tfoot td{font-weight:700;background:#f0fdf4}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+/* modal */
+#modal{position:fixed;inset:0;background:#0008;z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:16px;max-height:92vh;overflow:auto}
+.sheet label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:11px;border-radius:10px;background:#e2e8f0;font-weight:700}
+.seg button.on.i{background:var(--g);color:#fff}.seg button.on.e{background:var(--r);color:#fff}
+.hint{font-size:12px;color:var(--mu);margin-top:6px}
+footer{margin:18px 12px 20px;background:#052e16;color:#4ade80;text-align:center;padding:16px 10px;border-radius:14px;font-weight:700;font-size:16px;text-shadow:0 0 8px #22c55e88}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:10px 18px;border-radius:20px;z-index:99}
+.printhead{display:none}
+@media print{
+ body{max-width:none;background:#fff}
+ .noprint,.banner,.topbar,.period,footer,#toast{display:none!important}
+ .printhead{display:block;text-align:center;margin-bottom:10px}
+ .card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}
+ th{background:#ddd!important;color:#000!important}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- เข้าสู่ระบบ -->
+<section id="login">
+  <img src="logo.jpg" alt="logo">
+  <h2>บันทึกรายรับ-รายจ่าย</h2>
+  <input id="pw" type="password" inputmode="numeric" placeholder="ใส่รหัสผ่าน" onkeydown="if(event.key==='Enter')doLogin()">
+  <div class="err" id="lerr"></div>
+  <button class="btn" style="width:100%;margin-top:6px" onclick="doLogin()">เข้าสู่ระบบ</button>
+</section>
+
+<!-- แอป -->
+<div id="app" class="hide">
+  <div class="banner"></div>
+  <img class="logo" src="logo.jpg" alt="logo">
+  <div class="title">💰 บันทึกรายรับ-รายจ่าย</div>
+
+  <div class="topbar">
+    <button class="back" onclick="goBack()">◀ ย้อนกลับ</button>
+    <button data-v="dash" onclick="show('dash')">สรุป</button>
+    <button data-v="list" onclick="show('list')">รายการ</button>
+    <button data-v="report" onclick="show('report')">รายงาน</button>
+  </div>
+  <div class="period">
+    <select id="selY" onchange="render()"></select>
+    <select id="selM" onchange="render()"></select>
+    <button class="btn gray" onclick="load()" style="flex:0 0 auto">⟳</button>
+  </div>
+
+  <main>
+    <!-- สรุป -->
+    <div id="v-dash">
+      <div class="actions noprint">
+        <button class="btn" onclick="openForm('รายรับ')">＋ บันทึกรายรับ</button>
+        <button class="btn red" onclick="openForm('รายจ่าย')">＋ บันทึกรายจ่าย</button>
+      </div>
+      <div class="cards">
+        <div class="card inc"><div class="k">รายรับรวม</div><div class="v" id="sI">0</div></div>
+        <div class="card exp"><div class="k">รายจ่ายรวม</div><div class="v" id="sE">0</div></div>
+        <div class="card bal full"><div class="k">คงเหลือสุทธิ</div><div class="v" id="sB">0</div></div>
+      </div>
+      <div class="card" style="margin-bottom:12px"><h3 style="color:var(--g)">🟢 รายรับ (กราฟวงกลม)</h3><div class="chartbox"><canvas id="cPie"></canvas></div></div>
+      <div class="card" style="margin-bottom:12px"><h3 style="color:var(--r)">🔴 รายจ่ายตามหมวด (กราฟแท่ง)</h3><div class="chartbox"><canvas id="cBar"></canvas></div></div>
+      <div class="card" id="grpTable"></div>
+    </div>
+
+    <!-- รายการ -->
+    <div id="v-list" class="hide">
+      <div class="actions noprint">
+        <button class="btn" onclick="openForm('รายรับ')">＋ รายรับ</button>
+        <button class="btn red" onclick="openForm('รายจ่าย')">＋ รายจ่าย</button>
+      </div>
+      <div class="filt noprint">
+        <button class="on" data-f="" onclick="setF(this)">ทั้งหมด</button>
+        <button data-f="รายรับ" onclick="setF(this)">รายรับ</button>
+        <button data-f="รายจ่าย" onclick="setF(this)">รายจ่าย</button>
+      </div>
+      <div id="rows"></div>
+    </div>
+
+    <!-- รายงาน -->
+    <div id="v-report" class="hide">
+      <div class="printhead"><h2>รายงานรายรับ-รายจ่ายส่วนบุคคล</h2><div id="phSub"></div></div>
+      <button class="btn blue noprint" style="width:100%;margin-bottom:10px" onclick="window.print()">🖨 พิมพ์รายงาน</button>
+      <div class="card" style="margin-bottom:12px"><h3>สรุปรายเดือน ปี <span id="rY"></span></h3><div id="monthTable"></div></div>
+      <div class="card" style="margin-bottom:12px"><h3>รายรับตามรายการ <span class="k" id="rP1"></span></h3><div id="incTable"></div></div>
+      <div class="card"><h3>รายจ่ายตามหมวด/รายการ <span class="k" id="rP2"></span></h3><div id="expTable"></div></div>
+    </div>
+  </main>
+
+  <footer>เพื่อความมั่นคง การบริหารการเงินต้องเหมาะสม</footer>
+</div>
+
+<!-- ฟอร์ม -->
+<div id="modal" class="hide" onclick="if(event.target===this)goBack()">
+  <div class="sheet">
+    <h3 id="fTitle">บันทึกข้อมูล</h3>
+    <div class="seg" style="margin-top:10px">
+      <button class="i" id="tI" onclick="setType('รายรับ')">รายรับ</button>
+      <button class="e" id="tE" onclick="setType('รายจ่าย')">รายจ่าย</button>
+    </div>
+    <div id="gWrap"><label>หมวด</label><select id="fG" onchange="fillSub()"></select></div>
+    <label>รายการ</label><select id="fS"></select>
+    <label>จำนวนเงิน (บาท)</label><input id="fA" type="number" inputmode="decimal" step="0.01" placeholder="0.00">
+    <label>หมายเหตุ</label><textarea id="fN" rows="2"></textarea>
+    <div class="hint">⏱ วันเวลาบันทึกโดยอัตโนมัติ <span id="fDt"></span></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn gray" style="flex:1" onclick="goBack()">◀ ย้อนกลับ</button>
+      <button class="btn" style="flex:2" id="fSave" onclick="save()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="hide"></div>
+
+<script>
+// ===== ตั้งค่า: ใส่ URL Web App ที่ได้จากการ Deploy Apps Script =====
+const API = 'PASTE_WEB_APP_URL_HERE';
+
+const INCOME = {name:'รายรับ', items:['เงินเดือน','เบี้ยเลี้ยง','เงิน โอที','บิลน้ำมัน','รายได้อื่นๆ'],
+  colors:['#16a34a','#0ea5e9','#f59e0b','#8b5cf6','#ec4899']};
+const EXP = {
+ 'ทั่วไป':{c:'#f59e0b',i:['อาหารเครื่องดื่ม','น้ำมันรถ','ของใช้ส่วนตัว','เสื้อผ้าเครื่องแต่งกายรองเท้า','สุขภาพ ยารักษาโรค อาหารเสริม','ตัดผมเสริมหล่อ','งานอดิเรก','ค่าน้ำค่าไฟ']},
+ 'หน้าที่':{c:'#3b82f6',i:['อุปกรณ์สำนักงาน','อุปกรณ์เครื่องแบบ','ห้องทำงาน','อุปกรณ์คอมพิวเตอร์','ค่าบูรณทรัพย์สิน','ค่าภาษีรายได้']},
+ 'สื่อสาร':{c:'#06b6d4',i:['ค่าโทรศัพท์','ค่าอินเตอร์เน็ต','ค่าใช้แอปต่างๆ','ค่าเช่าคราวด์และserver']},
+ 'ทำบุญ':{c:'#a855f7',i:['ค่าฌาปณกิจ ตร.','ภาษีสังคม','ทำบุญในโอกาสต่างๆ']},
+ 'ยานพาหนะ':{c:'#ef4444',i:['ค่าภาษีรถยนต์','ค่าซ่อมรถ','ค่าประกันภัย','ค่า พรบ.']},
+ 'ค่าใช้จ่ายบุตร':{c:'#ec4899',i:['ค่าเทอมลูก','ค่าใช้จ่ายรายเดือน','ค่าใช้จ่ายเพิ่มเติม']},
+ 'ออม-ลงทุน':{c:'#10b981',i:['เงินฝาก','เงินลงทุน','เงินออม']},
+ 'หนี้สิน':{c:'#64748b',i:['จ่ายสหกรณ์การเกษตร','จ่ายธนาคารออมสิน','จ่ายสหกรณ์ตำรวจ']}
+};
+const MONTHS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+let PW='', DATA=[], view='dash', hist=[], filt='', ftype='รายรับ', editId=null, pie, bar;
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const colorOf=r=>r.type==='รายรับ'?INCOME.colors[Math.max(0,INCOME.items.indexOf(r.sub))]:(EXP[r.group]||{c:'#999'}).c;
+
+function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hide');setTimeout(()=>e.classList.add('hide'),2200)}
+async function api(p){
+  const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({pw:PW,...p})});
+  return r.json();
+}
+async function doLogin(){
+  PW=$('pw').value.trim(); $('lerr').textContent='กำลังตรวจสอบ...';
+  try{
+    const r=await api({action:'list'});
+    if(!r.ok){$('lerr').textContent=r.error;return}
+    sessionStorage.setItem('pw',PW); DATA=r.data; $('login').classList.add('hide'); $('app').classList.remove('hide'); init();
+  }catch(e){$('lerr').textContent='เชื่อมต่อไม่ได้ ตรวจสอบ URL Web App'}
+}
+async function load(){
+  const r=await api({action:'list'}); if(r.ok){DATA=r.data;render();toast('โหลดข้อมูลแล้ว')}else toast(r.error);
+}
+function init(){
+  const now=new Date(),y=now.getFullYear();
+  const ys=new Set([y,...DATA.map(r=>+r.dt.slice(0,4))]);
+  $('selY').innerHTML=[...ys].sort((a,b)=>b-a).map(v=>`<option value="${v}">พ.ศ. ${v+543}</option>`).join('');
+  $('selM').innerHTML='<option value="0">ทั้งปี</option>'+MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  $('selM').value=now.getMonth()+1;
+  show('dash',false);
+}
+function period(){
+  const y=$('selY').value,m=+$('selM').value;
+  const p=m?`${y}-${String(m).padStart(2,'0')}`:y;
+  return {y,m,p,label:m?`${MONTHS[m-1]} ${+y+543}`:`ทั้งปี ${+y+543}`};
+}
+function rowsIn(){const {p}=period();return DATA.filter(r=>r.dt.startsWith(p))}
+function sum(a){return a.reduce((s,r)=>s+r.amount,0)}
+
+/* ---- นำทาง ---- */
+function show(v,push=true){
+  if(push&&v!==view)hist.push(view);
+  view=v;
+  ['dash','list','report'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
+  document.querySelectorAll('.topbar [data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  render();
+}
+function goBack(){
+  if(!$('modal').classList.contains('hide')){$('modal').classList.add('hide');return}
+  if(hist.length){show(hist.pop(),false);return}
+  if(confirm('ออกจากระบบ?')){sessionStorage.removeItem('pw');location.reload()}
+}
+
+/* ---- แสดงผล ---- */
+function render(){
+  if(!$('app')||$('app').classList.contains('hide'))return;
+  const rs=rowsIn(),inc=rs.filter(r=>r.type==='รายรับ'),exp=rs.filter(r=>r.type==='รายจ่าย');
+  $('sI').textContent=fmt(sum(inc));$('sE').textContent=fmt(sum(exp));$('sB').textContent=fmt(sum(inc)-sum(exp));
+  if(view==='dash')charts(inc,exp);
+  if(view==='list')list(rs);
+  if(view==='report')report(inc,exp);
+}
+function charts(inc,exp){
+  const iv=INCOME.items.map(i=>sum(inc.filter(r=>r.sub===i)));
+  pie&&pie.destroy();
+  pie=new Chart($('cPie'),{type:'pie',data:{labels:INCOME.items,datasets:[{data:iv,backgroundColor:INCOME.colors}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}}}});
+  const gs=Object.keys(EXP),gv=gs.map(g=>sum(exp.filter(r=>r.group===g)));
+  bar&&bar.destroy();
+  bar=new Chart($('cBar'),{type:'bar',data:{labels:gs,datasets:[{data:gv,backgroundColor:gs.map(g=>EXP[g].c)}]},
+    options:{maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true},x:{ticks:{maxRotation:60,font:{size:10}}}}}});
+  const tot=sum(exp)||1;
+  $('grpTable').innerHTML='<h3>สรุปรายจ่ายแต่ละหมวด</h3><table><tr><th>หมวด</th><th>บาท</th><th>%</th></tr>'+
+    gs.map((g,i)=>`<tr><td><span class="dot" style="background:${EXP[g].c}"></span>${g}</td><td>${fmt(gv[i])}</td><td>${(gv[i]/tot*100).toFixed(1)}</td></tr>`).join('')+'</table>';
+}
+function dtTH(s){const [d,t]=s.split(' ');const [y,m,dd]=d.split('-');return `${+dd}/${+m}/${+y+543} ${t.slice(0,5)}`}
+function setF(b){filt=b.dataset.f;document.querySelectorAll('.filt button').forEach(x=>x.classList.toggle('on',x===b));render()}
+function list(rs){
+  rs=rs.filter(r=>!filt||r.type===filt).sort((a,b)=>b.dt.localeCompare(a.dt));
+  $('rows').innerHTML=rs.length?rs.map(r=>{const c=colorOf(r);const inc=r.type==='รายรับ';
+    return `<div class="row" style="border-left-color:${c}"><div class="m">
+      <div class="n">${esc(r.sub)}</div>
+      <div class="s"><span class="badge" style="background:${inc?'#16a34a':c}">${inc?'รายรับ':esc(r.group)}</span>${dtTH(r.dt)}${r.upd?' (แก้ไข)':''}</div>
+      ${r.note?`<div class="s">📝 ${esc(r.note)}</div>`:''}</div>
+      <div class="amt" style="color:${inc?'#16a34a':'#dc2626'}">${inc?'+':'-'}${fmt(r.amount)}</div>
+      <div class="noprint"><button class="mini blue" onclick="openForm(null,'${r.id}')">✎</button> <button class="mini red" onclick="del('${r.id}')">🗑</button></div></div>`}).join('')
+    :'<div class="card" style="text-align:center;color:var(--mu)">ยังไม่มีรายการในช่วงนี้</div>';
+}
+function report(inc,exp){
+  const {y,label}=period();
+  $('rY').textContent=+y+543;$('rP1').textContent='('+label+')';$('rP2').textContent='('+label+')';$('phSub').textContent=label;
+  let ti=0,te=0,h='<table><tr><th>เดือน</th><th>รายรับ</th><th>รายจ่าย</th><th>คงเหลือ</th></tr>';
+  for(let m=1;m<=12;m++){
+    const p=`${y}-${String(m).padStart(2,'0')}`,a=DATA.filter(r=>r.dt.startsWith(p));
+    const i=sum(a.filter(r=>r.type==='รายรับ')),e=sum(a.filter(r=>r.type==='รายจ่าย'));ti+=i;te+=e;
+    h+=`<tr><td>${MONTHS[m-1]}</td><td style="color:#16a34a">${fmt(i)}</td><td style="color:#dc2626">${fmt(e)}</td><td>${fmt(i-e)}</td></tr>`;
+  }
+  $('monthTable').innerHTML=h+`<tfoot><tr><td>รวมทั้งปี</td><td>${fmt(ti)}</td><td>${fmt(te)}</td><td>${fmt(ti-te)}</td></tr></tfoot></table>`;
+  $('incTable').innerHTML='<table><tr><th>รายการ</th><th>บาท</th></tr>'+INCOME.items.map((n,i)=>
+    `<tr><td><span class="dot" style="background:${INCOME.colors[i]}"></span>${n}</td><td>${fmt(sum(inc.filter(r=>r.sub===n)))}</td></tr>`).join('')+
+    `<tfoot><tr><td>รวม</td><td>${fmt(sum(inc))}</td></tr></tfoot></table>`;
+  let e='<table><tr><th>หมวด / รายการ</th><th>บาท</th></tr>';
+  for(const g in EXP){
+    const gr=exp.filter(r=>r.group===g);
+    e+=`<tr style="background:${EXP[g].c}22"><td><b><span class="dot" style="background:${EXP[g].c}"></span>${g}</b></td><td><b>${fmt(sum(gr))}</b></td></tr>`;
+    EXP[g].i.forEach(s=>{const v=sum(gr.filter(r=>r.sub===s));if(v)e+=`<tr><td style="padding-left:18px">${s}</td><td>${fmt(v)}</td></tr>`});
+  }
+  $('expTable').innerHTML=e+`<tfoot><tr><td>รวมรายจ่าย</td><td>${fmt(sum(exp))}</td></tr></tfoot></table>`;
+}
+
+/* ---- ฟอร์ม บันทึก/แก้ไข/ลบ ---- */
+function setType(t){
+  ftype=t;$('tI').classList.toggle('on',t==='รายรับ');$('tE').classList.toggle('on',t==='รายจ่าย');
+  $('gWrap').classList.toggle('hide',t==='รายรับ');
+  if(t==='รายจ่าย'){$('fG').innerHTML=Object.keys(EXP).map(g=>`<option>${g}</option>`).join('')}
+  fillSub();
+}
+function fillSub(){
+  const l=ftype==='รายรับ'?INCOME.items:EXP[$('fG').value].i;
+  $('fS').innerHTML=l.map(s=>`<option>${s}</option>`).join('');
+}
+function openForm(type,id){
+  editId=id||null;let r=null;
+  if(id){r=DATA.find(x=>x.id===id);type=r.type}
+  $('tI').className='i';$('tE').className='e';
+  setType(type);
+  if(r){if(type==='รายจ่าย'){$('fG').value=r.group;fillSub()}$('fS').value=r.sub;$('fA').value=r.amount;$('fN').value=r.note}
+  else{$('fA').value='';$('fN').value=''}
+  $('fTitle').textContent=id?'✎ แก้ไขข้อมูล':'＋ บันทึกข้อมูลใหม่';
+  $('fDt').textContent=id?'(คงเวลาเดิม: '+dtTH(r.dt)+')':'';
+  $('modal').classList.remove('hide');
+}
+async function save(){
+  const amt=parseFloat($('fA').value);
+  if(!(amt>0)){toast('กรุณาใส่จำนวนเงิน');return}
+  const row={id:editId,type:ftype,group:ftype==='รายรับ'?'รายรับ':$('fG').value,sub:$('fS').value,amount:amt,note:$('fN').value};
+  $('fSave').disabled=true;$('fSave').textContent='กำลังบันทึก...';
+  try{
+    const r=await api({action:editId?'update':'add',row});
+    if(!r.ok)throw new Error(r.error);
+    $('modal').classList.add('hide');toast('บันทึกเรียบร้อย');await load();
+  }catch(e){toast('ผิดพลาด: '+e.message)}
+  $('fSave').disabled=false;$('fSave').textContent='💾 บันทึก';
+}
+async function del(id){
+  if(!confirm('ลบรายการนี้?'))return;
+  const r=await api({action:'delete',id});
+  if(r.ok){toast('ลบแล้ว');load()}else toast(r.error);
+}
+window.addEventListener('load',()=>{const s=sessionStorage.getItem('pw');if(s){$('pw').value=s;doLogin()}});
+</script>
+</body>
+</html>
